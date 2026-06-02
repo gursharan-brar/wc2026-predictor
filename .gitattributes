@@ -1,0 +1,16 @@
+# Normalize line endings: LF in repo, native on checkout
+* text=auto eol=lf
+
+# Binary files — no line ending conversion
+*.db     binary
+*.pkl    binary
+*.pbix   binary
+*.png    binary
+*.svg    -text
+*.wasm   binary
+
+# Always LF for shell / CI scripts (they must run on Linux in Docker/GH Actions)
+*.sh     text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+Dockerfile text eol=lf
