@@ -1,0 +1,140 @@
+World Cup 2026 Predictor - Build 4: Model Retraining
+==============================================================================
+  Adding: H2H (6) + time-decay weighted (13) + Elo (6) features
+  Sample weighting: every match weighted by competition_weight()
+==============================================================================
+
+[1/6] Loading matches and team stats ...
+   Matches loaded : 32,290
+   Teams in stats   : 320
+   Raw feature pool : 43 (baseline 24 + weighted 13 + elo 6)
+
+[2/6] Building H2H pairwise cache (Build 1 head_to_head table) ...
+   H2H pairs cached : 11,218 (from 32,290 matches)
+
+[3/6] Running 5-stage feature comparison (XGBoost, weighted CV) ...
+
+   ────────────────────────────────────────────────────────────────
+   STAGE 1 — Baseline (current production feature set)   (72 features)
+   ────────────────────────────────────────────────────────────────
+   Matches used : 32,262  (skipped 28)
+   Mean accuracy : 0.5741  (±0.0057)
+   Mean F1 (macro): 0.4509
+
+   ────────────────────────────────────────────────────────────────
+   STAGE 2 — + Head-to-head (Build 1: 6 pairwise features)   (78 features)
+   ────────────────────────────────────────────────────────────────
+   Matches used : 32,262  (skipped 28)
+   Mean accuracy : 0.6331  (±0.0040)   (++0.0590 vs baseline)
+   Mean F1 (macro): 0.5586
+
+   ────────────────────────────────────────────────────────────────
+   STAGE 3 — + Time-decay weighted (Build 2: 13 per-team features)   (117 features)
+   ────────────────────────────────────────────────────────────────
+   Matches used : 32,262  (skipped 28)
+   Mean accuracy : 0.6264  (±0.0046)   (++0.0523 vs baseline)
+   Mean F1 (macro): 0.5527
+
+   ────────────────────────────────────────────────────────────────
+   STAGE 4 — + Elo ratings (Build 3: 6 per-team features) -- FULL SET   (135 features)
+   ────────────────────────────────────────────────────────────────
+   Matches used : 32,262  (skipped 28)
+   Mean accuracy : 0.6245  (±0.0059)   (++0.0504 vs baseline)
+   Mean F1 (macro): 0.5524
+
+[4/6] Feature importance analysis (training on full data, full feature set) ...
+
+==============================================================================
+FEATURE IMPORTANCE — TOP 15 (raw columns; H2H shown standalone)
+==============================================================================
+
+  #    Feature                                Importance         Family
+  ────────────────────────────────────────────────────────────────────
+  1    h2h_win_rate_diff                         0.15528            H2H
+  2    h2h_goals_diff                            0.09800            H2H
+  3    h2h_recent_momentum                       0.07253            H2H
+  4    weighted_draw_rate                        0.03007       Weighted
+  5    elo_vs_tournament_avg                     0.02661            Elo
+  6    weighted_goals_scored_per_game            0.02641       Weighted
+  7    weighted_loss_rate                        0.02610       Weighted
+  8    competitive_win_rate                      0.02589       Weighted
+  9    wc_specific_win_rate                      0.02582       Weighted
+  10   recent_competitive_form_12m               0.02549       Weighted
+  11   h2h_experience                            0.02498            H2H
+  12   weighted_goal_difference_per_game         0.02493       Weighted
+  13   peak_elo_last_4y                          0.02478            Elo
+  14   big_game_clutch_rate                      0.02453       Weighted
+  15   weighted_goals_conceded_per_game          0.02448       Weighted
+
+  ────────────────────────────────────────────────────────────────────
+  BOTTOM features (candidates for pruning, importance < 0.001):
+   squad_market_value_log                    0.00000       Baseline
+   squad_avg_age                             0.00000       Baseline
+   wc_participations                         0.00000       Baseline
+   goals_scored_last_4y                      0.00000       Baseline
+   wins_last_4y                              0.00000       Baseline
+   fifa_rank_inv                             0.00000       Baseline
+   is_host_nation                            0.00000       Baseline
+   starter_quality_score                     0.00000       Baseline
+   depth_score                               0.00000       Baseline
+   avg_goals_per90_squad                     0.00000       Baseline
+   avg_assists_per90_squad                   0.00000       Baseline
+   defensive_score                           0.00000       Baseline
+   wc_goals_per90                            0.00000       Baseline
+   wc_assists_per90                          0.00000       Baseline
+   wc_pressure_rate                          0.00000       Baseline
+   wc_veteran_count                          0.00000       Baseline
+
+   Raw columns   : 43 -> kept 27, dropped 16
+     dropped: ['squad_market_value_log', 'squad_avg_age', 'wc_participations', 'goals_scored_last_4y', 'wins_last_4y', 'fifa_rank_inv', 'is_host_nation', 'starter_quality_score', 'depth_score', 'avg_goals_per90_squad', 'avg_assists_per90_squad', 'defensive_score', 'wc_goals_per90', 'wc_assists_per90', 'wc_pressure_rate', 'wc_veteran_count']
+   H2H columns   : 6 -> kept 6, dropped 0
+
+   ────────────────────────────────────────────────────────────────
+   STAGE 5 — All combined (pruned, importance >= 0.001)   (87 features)
+   ────────────────────────────────────────────────────────────────
+   Matches used : 32,262  (skipped 28)
+   Mean accuracy : 0.6246  (±0.0047)   (++0.0505 vs baseline)
+   Mean F1 (macro): 0.5514
+
+==============================================================================
+STAGE-BY-STAGE ACCURACY SUMMARY
+==============================================================================
+
+  Stage                         #Features   Accuracy  Δ vs base       F1
+  ────────────────────────────────────────────────────────────────────
+  1. Baseline                          72     0.5741 +   0.0000   0.4509
+  2. + H2H                             78     0.6331 +   0.0590   0.5586
+  3. + Weighted                       117     0.6264 +   0.0523   0.5527
+  4. + Elo (full set)                 135     0.6245 +   0.0504   0.5524
+  5. All combined (pruned)             87     0.6246 +   0.0505   0.5514
+  ────────────────────────────────────────────────────────────────────
+
+  Best stage: 2. + H2H
+
+[5/6] Final model selection (XGBoost vs Logistic Regression on pruned set) ...
+
+   Model                       Accuracy       F1
+   ─────────────────────────────────────────────
+   Logistic Regression           0.6435   0.5560
+   XGBoost                       0.6246   0.5514
+
+   Winner: Logistic Regression  (accuracy=0.6435, F1=0.5560)
+
+[6/6] Training final model on 100% of data and saving ...
+
+   Saved -> C:\Users\gsb13\OneDrive\Desktop\predictor\wc2026_model.pkl  (8 KB)
+   Total features      : 87  (27 raw x 3 + 6 H2H)
+   feature_names_raw   : ['win_rate', 'avg_goals_scored', 'avg_goals_conceded', 'big_game_win_rate', 'defensive_strength', 'offensive_strength', 'tournament_experience_score', 'form_momentum', 'weighted_win_rate', 'weighted_draw_rate', 'weighted_loss_rate', 'weighted_goals_scored_per_game', 'weighted_goals_conceded_per_game', 'weighted_goal_difference_per_game', 'weighted_form_momentum', 'competitive_win_rate', 'wc_specific_win_rate', 'recent_form_6m', 'recent_form_12m', 'recent_competitive_form_12m', 'big_game_clutch_rate', 'current_elo', 'elo_trend_6m', 'elo_trend_12m', 'elo_vs_tournament_avg', 'peak_elo_last_4y', 'elo_volatility']
+   h2h_feature_names   : ['h2h_win_rate_diff', 'h2h_goals_diff', 'h2h_big_tournament_advantage', 'h2h_recent_momentum', 'h2h_experience', 'h2h_last_3y_advantage']
+
+==============================================================================
+BUILD 4 RETRAINING COMPLETE
+==============================================================================
+  Old model accuracy (production baseline) : 0.5766  (from earlier CV run)
+  New model accuracy (pruned, all combined): 0.6435
+  Net change                                : ++0.0669
+==============================================================================
+
+Next: re-run wc2026_simulator.py to regenerate tournament probabilities
+      with the enriched model (the simulator has been updated to read
+      h2h_feature_names / uses_h2h from the payload automatically).

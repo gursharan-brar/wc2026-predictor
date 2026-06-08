@@ -1,49 +1,87 @@
-/** Flag emoji for every WC 2026 team. Fallback: ⚽ */
+/**
+ * Flag emoji + group lookup for every WC 2026 team.
+ *
+ * BUGFIX (2026-06-08): the previous FLAGS/GROUPS tables were built from an
+ * old placeholder draw and didn't match the official Dec 5 2024 group draw
+ * (data/teams.csv → wc2026_simulator.GROUP_STAGE).  Nearly every real team
+ * was missing or mis-grouped, which is why the UI showed "Group ?" almost
+ * everywhere.  Both tables below are now derived directly from the official
+ * 12-group, 48-team draw so every team the simulator outputs resolves.
+ *
+ * Fallback flag: ⚽ — used for the 6 still-undecided playoff slots (TBD-*).
+ */
 export const FLAGS = {
   // Group A
-  'USA': '🇺🇸', 'Ecuador': '🇪🇨', 'Morocco': '🇲🇦', 'Saudi Arabia': '🇸🇦',
+  'Mexico': '🇲🇽', 'South Africa': '🇿🇦', 'South Korea': '🇰🇷', 'TBD-UEPD': '⚽',
   // Group B
-  'Mexico': '🇲🇽', 'Colombia': '🇨🇴', 'Algeria': '🇩🇿', 'Iran': '🇮🇷',
+  'Canada': '🇨🇦', 'TBD-UEPA': '⚽', 'Qatar': '🇶🇦', 'Switzerland': '🇨🇭',
   // Group C
-  'Canada': '🇨🇦', 'Uruguay': '🇺🇾', 'Egypt': '🇪🇬', 'Australia': '🇦🇺',
+  'Brazil': '🇧🇷', 'Morocco': '🇲🇦', 'Haiti': '🇭🇹', 'Scotland': '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
   // Group D
-  'Argentina': '🇦🇷', 'Japan': '🇯🇵', 'Ivory Coast': '🇨🇮', 'Jordan': '🇯🇴',
+  'USA': '🇺🇸', 'Paraguay': '🇵🇾', 'Australia': '🇦🇺', 'TBD-UEPC': '⚽',
   // Group E
-  'Brazil': '🇧🇷', 'South Korea': '🇰🇷', 'Nigeria': '🇳🇬', 'Iraq': '🇮🇶',
+  'Germany': '🇩🇪', 'Curacao': '🇨🇼', 'Ivory Coast': '🇨🇮', 'Ecuador': '🇪🇨',
   // Group F
-  'France': '🇫🇷', 'Senegal': '🇸🇳', 'Cameroon': '🇨🇲', 'Qatar': '🇶🇦',
+  'Netherlands': '🇳🇱', 'Japan': '🇯🇵', 'TBD-UEPB': '⚽', 'Tunisia': '🇹🇳',
   // Group G
-  'Spain': '🇪🇸', 'Croatia': '🇭🇷', 'South Africa': '🇿🇦', 'Honduras': '🇭🇳',
+  'Belgium': '🇧🇪', 'Egypt': '🇪🇬', 'Iran': '🇮🇷', 'New Zealand': '🇳🇿',
   // Group H
-  'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Serbia': '🇷🇸', 'Mali': '🇲🇱', 'Jamaica': '🇯🇲',
+  'Spain': '🇪🇸', 'Cape Verde': '🇨🇻', 'Saudi Arabia': '🇸🇦', 'Uruguay': '🇺🇾',
   // Group I
-  'Germany': '🇩🇪', 'Denmark': '🇩🇰', 'Switzerland': '🇨🇭', 'Bolivia': '🇧🇴',
+  'France': '🇫🇷', 'Senegal': '🇸🇳', 'TBD-FP02': '⚽', 'Norway': '🇳🇴',
   // Group J
-  'Belgium': '🇧🇪', 'Turkey': '🇹🇷', 'Scotland': '🏴󠁧󠁢󠁳󠁣󠁴󠁿', 'New Zealand': '🇳🇿',
+  'Argentina': '🇦🇷', 'Algeria': '🇩🇿', 'Austria': '🇦🇹', 'Jordan': '🇯🇴',
   // Group K
-  'Portugal': '🇵🇹', 'Austria': '🇦🇹', 'Panama': '🇵🇦', 'El Salvador': '🇸🇻',
+  'Portugal': '🇵🇹', 'TBD-FP01': '⚽', 'Uzbekistan': '🇺🇿', 'Colombia': '🇨🇴',
   // Group L
-  'Netherlands': '🇳🇱', 'Poland': '🇵🇱', 'Romania': '🇷🇴', 'Venezuela': '🇻🇪',
+  'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Croatia': '🇭🇷', 'Ghana': '🇬🇭', 'Panama': '🇵🇦',
+
+  // ── Alternate spellings some data sources (teams.csv, FIFA feeds) use ──
+  // Keeping both forms means the lookup never falls through to ⚽ just
+  // because of an accent / spelling difference.
+  'Curaçao':    '🇨🇼',
+  'Cabo Verde': '🇨🇻',
+  'DR Congo':   '🇨🇩',
 };
 
 export const flag = (name) => FLAGS[name] ?? '⚽';
 
-/** Group each WC team belongs to */
+/** Group each WC team belongs to — official Dec 5 2024 draw (12 groups of 4). */
 export const TEAM_GROUP = {};
 const GROUPS = {
-  A: ['USA','Ecuador','Morocco','Saudi Arabia'],
-  B: ['Mexico','Colombia','Algeria','Iran'],
-  C: ['Canada','Uruguay','Egypt','Australia'],
-  D: ['Argentina','Japan','Ivory Coast','Jordan'],
-  E: ['Brazil','South Korea','Nigeria','Iraq'],
-  F: ['France','Senegal','Cameroon','Qatar'],
-  G: ['Spain','Croatia','South Africa','Honduras'],
-  H: ['England','Serbia','Mali','Jamaica'],
-  I: ['Germany','Denmark','Switzerland','Bolivia'],
-  J: ['Belgium','Turkey','Scotland','New Zealand'],
-  K: ['Portugal','Austria','Panama','El Salvador'],
-  L: ['Netherlands','Poland','Romania','Venezuela'],
+  A: ['Mexico', 'South Africa', 'South Korea', 'TBD-UEPD'],
+  B: ['Canada', 'TBD-UEPA', 'Qatar', 'Switzerland'],
+  C: ['Brazil', 'Morocco', 'Haiti', 'Scotland'],
+  D: ['USA', 'Paraguay', 'Australia', 'TBD-UEPC'],
+  E: ['Germany', 'Curacao', 'Ivory Coast', 'Ecuador'],
+  F: ['Netherlands', 'Japan', 'TBD-UEPB', 'Tunisia'],
+  G: ['Belgium', 'Egypt', 'Iran', 'New Zealand'],
+  H: ['Spain', 'Cape Verde', 'Saudi Arabia', 'Uruguay'],
+  I: ['France', 'Senegal', 'TBD-FP02', 'Norway'],
+  J: ['Argentina', 'Algeria', 'Austria', 'Jordan'],
+  K: ['Portugal', 'TBD-FP01', 'Uzbekistan', 'Colombia'],
+  L: ['England', 'Croatia', 'Ghana', 'Panama'],
 };
 Object.entries(GROUPS).forEach(([g, teams]) =>
   teams.forEach((t) => { TEAM_GROUP[t] = g; })
 );
+// Alternate-spelling aliases inherit their canonical team's group.
+TEAM_GROUP['Curaçao']    = TEAM_GROUP['Curacao'];
+TEAM_GROUP['Cabo Verde'] = TEAM_GROUP['Cape Verde'];
+
+/**
+ * Human-readable names for the 6 still-undecided playoff slots.
+ * The simulator/database carries them as short codes (TBD-UEPA, TBD-FP01,
+ * ...) that map 1:1 to real bracket positions — these ARE confirmed World
+ * Cup spots, just not yet assigned to a confirmed nation.
+ */
+export const TEAM_DISPLAY_NAMES = {
+  'TBD-UEPA': 'UEFA Playoff A',
+  'TBD-UEPB': 'UEFA Playoff B',
+  'TBD-UEPC': 'UEFA Playoff C',
+  'TBD-UEPD': 'UEFA Playoff D',
+  'TBD-FP01': 'FIFA Playoff 1',
+  'TBD-FP02': 'FIFA Playoff 2',
+};
+
+export const displayName = (name) => TEAM_DISPLAY_NAMES[name] ?? name;

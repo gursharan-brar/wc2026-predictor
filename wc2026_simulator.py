@@ -23,14 +23,21 @@ NOTE ON GROUP DRAW:
   needs updating — simply edit the GROUP_STAGE dictionary below.
 """
 
+import sys
 import json
 import sqlite3
 import warnings
 import numpy as np
 import pandas as pd
 import joblib
+from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+# Build 4 — H2H-aware prediction needs the same pairwise lookup the retrain
+# script used.  Imported lazily-safe: wc2026_h2h has no import-time side effects.
+from wc2026_h2h import get_h2h_features
 
 warnings.filterwarnings("ignore")
 
@@ -47,6 +54,13 @@ _FEATURE_COLS_FALLBACK = [
     "big_game_win_rate", "defensive_strength", "offensive_strength",
     "tournament_experience_score", "form_momentum",
 ]
+
+# Build 4 — populated by load_model_and_stats() if the saved model carries
+# H2H features.  Left empty/False here so older models behave exactly as
+# before (predict_neutral simply skips the H2H block).
+H2H_FEATURE_NAMES: list = []
+USES_H2H:          bool = False
+H2H_CACHE:         dict = {}
 
 # ─── OFFICIAL GROUP DRAW ──────────────────────────────────────────────────────
 # Source: FIFA WC 2026 draw, December 5 2024, Miami Florida
@@ -126,10 +140,22 @@ def load_model_and_stats() -> tuple:
     Phase 7 update: we now read FEATURE_COLS from the saved model payload
     rather than using a hardcoded list, so the simulator automatically adapts
     when the model is retrained with an expanded feature set.
+
+    Build 4 update: the retrained model may also carry pairwise H2H
+    features (payload['uses_h2h'] / payload['h2h_feature_names']).  Unlike
+    per-team stats, H2H values can't be looked up from a simple {team: row}
+    dict — they require a (team_a, team_b) pair query against the
+    `head_to_head` table.  We precompute every ordered pair among the 48 WC
+    teams ONCE here (48*47 = 2,256 lookups) and hand the resulting cache
+    down to predict_neutral / build_prob_cache, exactly mirroring the
+    h2h_cache pattern used during training in wc2026_model_retrain.py.
     """
     payload     = joblib.load(MODEL_PATH)
     pipeline    = payload["pipeline"]
     label_names = payload["label_names"]   # ["away_win","draw","home_win"]
+
+    h2h_feature_names = payload.get("h2h_feature_names", [])
+    uses_h2h          = bool(payload.get("uses_h2h", False)) and len(h2h_feature_names) > 0
 
     # Read the raw (un-prefixed) feature column names the model was trained on.
     # The payload stores them as 'feature_names_raw' (Phase 7 model) or we
@@ -165,6 +191,23 @@ def load_model_and_stats() -> tuple:
     global FEATURE_COLS
     FEATURE_COLS = safe_cols
 
+    # ── Build 4: precompute the H2H pairwise cache (if the model expects it) ──
+    h2h_cache = {}
+    if uses_h2h:
+        conn2 = sqlite3.connect(DB_PATH)
+        for t1 in ALL_WC_TEAMS:
+            for t2 in ALL_WC_TEAMS:
+                if t1 != t2:
+                    h2h_cache[(t1, t2)] = get_h2h_features(t1, t2, conn2)
+        conn2.close()
+        print(f"   H2H pairwise cache built: {len(h2h_cache):,} ordered pairs "
+              f"({len(h2h_feature_names)} features each)")
+
+    global H2H_FEATURE_NAMES, USES_H2H, H2H_CACHE
+    H2H_FEATURE_NAMES = h2h_feature_names
+    USES_H2H          = uses_h2h
+    H2H_CACHE         = h2h_cache
+
     return pipeline, stats, avg_row, label_names
 
 
@@ -189,6 +232,18 @@ def predict_neutral(
 
     The host-nation bonus (USA, Canada, Mexico) is already in team features
     so they still get a crowd advantage through the feature vector itself.
+
+    Build 4 — H2H features in a neutral-venue, double-pass prediction:
+    H2H features (e.g. h2h_win_rate_diff) are already DIRECTIONAL — they
+    encode "home minus away" from the perspective of whichever team is
+    listed as home in that lookup.  So for:
+      Pass 1 (team1 as home) → look up H2H_CACHE[(team1, team2)]
+      Pass 2 (team2 as home) → look up H2H_CACHE[(team2, team1)]
+    This is the pairwise equivalent of the `diff` -> `neg_d` flip we already
+    do for per-team stats — each pass gets the H2H block from the correct
+    team's perspective, and averaging the two passes cancels out any
+    "home advantage" baked into the historical H2H record, just like it
+    does for the rest of the feature vector.
     """
     h = stats.get(team1, avg_row)
     a = stats.get(team2, avg_row)
@@ -198,12 +253,19 @@ def predict_neutral(
     diff    = [h[c] - a[c] for c in FEATURE_COLS]
     neg_d   = [-d for d in diff]
 
+    h2h_12 = h2h_21 = []
+    if USES_H2H and H2H_FEATURE_NAMES:
+        rec_12 = H2H_CACHE.get((team1, team2)) or {k: 0.0 for k in H2H_FEATURE_NAMES}
+        rec_21 = H2H_CACHE.get((team2, team1)) or {k: 0.0 for k in H2H_FEATURE_NAMES}
+        h2h_12 = [rec_12.get(k, 0.0) for k in H2H_FEATURE_NAMES]
+        h2h_21 = [rec_21.get(k, 0.0) for k in H2H_FEATURE_NAMES]
+
     # Pass 1: team1 as home
-    X1   = np.array([h_feats + a_feats + diff])
+    X1   = np.array([h_feats + a_feats + diff + h2h_12])
     p1   = pipeline.predict_proba(X1)[0]   # [away_win, draw, home_win]
 
     # Pass 2: team2 as home (team1 as away)
-    X2   = np.array([a_feats + h_feats + neg_d])
+    X2   = np.array([a_feats + h_feats + neg_d + h2h_21])
     p2   = pipeline.predict_proba(X2)[0]
 
     # Average: team1 wins = home_win in pass1 = away_win in pass2

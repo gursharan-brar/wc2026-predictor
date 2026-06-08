@@ -1,99 +1,50 @@
 import { useCountUp } from '../hooks/useCountUp';
 
-const STATS = [
-  { label: 'Training matches',  value: 32290,  suffix: '',   prefix: '',   decimals: 0, gold: false },
-  { label: 'CV Accuracy',       value: 57.69,  suffix: '%',  prefix: '',   decimals: 1, gold: true  },
-  { label: 'Model',             value: null,   display: 'XGBoost',         gold: false },
-  { label: 'Simulations',       value: 10000,  suffix: '',   prefix: '',   decimals: 0, gold: false },
-];
-
-function BigStat({ label, value, suffix = '', decimals = 0, gold, display, delay = 0 }) {
-  const animated = useCountUp(value ?? 0, 900, delay);
-  const shown = display ?? (
-    value != null
-      ? `${animated.toFixed(decimals)}${suffix}`
-      : '—'
-  );
-
-  return (
-    <div style={{
-      padding: '14px 0',
-      borderBottom: '1px solid var(--c-border)',
-    }}>
-      <div style={{
-        fontFamily: 'var(--font-heading)',
-        fontSize: display ? 22 : 28,
-        fontWeight: 800,
-        color: gold ? 'var(--gold-light)' : 'var(--c-text)',
-        lineHeight: 1,
-        marginBottom: 4,
-        letterSpacing: display ? '0.04em' : '-0.01em',
-      }}>
-        {shown}
-      </div>
-      <div style={{
-        fontFamily: 'var(--font-mono)',
-        fontSize: 10,
-        color: 'var(--c-text-dim)',
-        textTransform: 'uppercase',
-        letterSpacing: '0.09em',
-      }}>
-        {label}
-      </div>
-    </div>
-  );
+function BigNum({ target, decimals = 1, suffix = '', delay = 0 }) {
+  const v = useCountUp(target, 900, delay);
+  return <>{v.toFixed(decimals)}{suffix}</>;
 }
 
 export default function ModelAccuracy() {
   return (
     <div style={{
-      background: '#0a0a0a',
-      border: '1px solid var(--c-border)',
-      borderRadius: 'var(--r-card)',
-      borderTop: '3px solid var(--gold)',
-      padding: '20px',
-      height: '100%',
+      background: 'var(--surface)',
+      border: '1px solid var(--border)',
+      borderTop: '2px solid var(--gold)',
+      borderRadius: 6,
+      padding: 24,
     }}>
-      {/* Header */}
-      <div style={{ marginBottom: 16 }}>
-        <div style={{
-          fontFamily: 'var(--font-heading)', fontSize: 14, fontWeight: 800,
-          color: 'var(--c-text)', textTransform: 'uppercase',
-          letterSpacing: '0.06em', marginBottom: 6,
-        }}>
-          Model Accuracy
-        </div>
-        <div style={{
-          fontFamily: 'var(--font-mono)', fontSize: 10,
-          color: 'var(--c-text-muted)', lineHeight: 1.6,
-        }}>
-          XGBoost classifier trained on international football results.
-          Each match is predicted as home win, draw, or away win using 24
-          features derived from team stats, big-game performance, and
-          World Cup history.
-        </div>
+      <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 16 }}>
+        Model Accuracy
+      </p>
+
+      {/* Big accuracy number */}
+      <div style={{ fontFamily: 'var(--font-heading)', fontSize: 48, color: 'var(--gold)', lineHeight: 1, marginBottom: 4 }}>
+        <BigNum target={57.7} delay={0} />%
       </div>
+      <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#444', marginBottom: 20 }}>
+        5-fold cross-validation
+      </p>
 
       {/* Stats */}
-      <div>
-        {STATS.map((s, i) => (
-          <BigStat key={s.label} {...s} delay={i * 80} />
-        ))}
-      </div>
-
-      {/* Footer note */}
-      <div style={{
-        marginTop: 14,
-        fontFamily: 'var(--font-mono)', fontSize: 10,
-        color: 'var(--c-text-dim)', lineHeight: 1.6,
-      }}>
-        <div style={{ color: 'var(--gold)', fontWeight: 700, marginBottom: 4 }}>
-          HOW IT WORKS
+      {[
+        { label: 'Training matches', value: 32290, fmt: (v) => Math.round(v).toLocaleString() },
+        { label: 'Simulations',      value: 10000, fmt: (v) => Math.round(v).toLocaleString() },
+      ].map(({ label, value, fmt }) => (
+        <div key={label} style={{
+          display: 'flex', justifyContent: 'space-between',
+          padding: '8px 0', borderBottom: '1px solid var(--border)',
+        }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--text-muted)' }}>{label}</span>
+          <span style={{ fontFamily: 'var(--font-heading)', fontSize: 16, color: 'var(--text)' }}>
+            {fmt(value)}
+          </span>
         </div>
-        5-fold cross-validation · 3-class classification · 24 engineered
-        features including offensive/defensive strength, tournament experience
-        decay, form momentum, and big-game win rate vs. top-20 ranked opponents.
-        Win probabilities from 10,000 full-tournament Monte Carlo simulations.
+      ))}
+
+      <div style={{ marginTop: 16, fontFamily: 'var(--font-body)', fontSize: 12, color: '#444', lineHeight: 1.6 }}>
+        XGBoost trained on 72 features per match — club form, tournament history,
+        StatsBomb event data, and squad market value.
       </div>
     </div>
   );

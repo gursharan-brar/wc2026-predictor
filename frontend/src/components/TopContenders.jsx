@@ -4,97 +4,59 @@ import { flag, TEAM_GROUP } from '../utils/flags';
 import { nc } from '../utils/nationalColors';
 import { useCountUp } from '../hooks/useCountUp';
 
-function ContenderCard({ team, rank, onTeamClick, animDelay = 0 }) {
-  const [hovered, setHovered] = useState(false);
-  const color = nc(team.team);
-  const winPct = useCountUp(team.win_probability * 100, 800, animDelay);
-  const group  = TEAM_GROUP[team.team] ?? '?';
+function ContenderCard({ t, rank, onTeamClick }) {
+  const [hov, setHov] = useState(false);
+  const color = nc(t.team);
+  const winPct = useCountUp(t.win_probability * 100, 800, rank * 50);
+  const group  = TEAM_GROUP[t.team] ?? '?';
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      aria-label={`View ${team.team} profile`}
-      onClick={() => onTeamClick(team.team)}
-      onKeyDown={(e) => e.key === 'Enter' && onTeamClick(team.team)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      role="button" tabIndex={0}
+      aria-label={`View ${t.team}`}
+      onClick={() => onTeamClick(t.team)}
+      onKeyDown={(e) => e.key === 'Enter' && onTeamClick(t.team)}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
       style={{
-        background: hovered
-          ? `linear-gradient(135deg, #161616 0%, color-mix(in srgb, ${color} 14%, #111) 100%)`
-          : `linear-gradient(135deg, #111111 0%, color-mix(in srgb, ${color} 9%, #111) 100%)`,
-        border: `1px solid ${hovered ? `${color}66` : `${color}28`}`,
-        borderRadius: 'var(--r-card)',
+        background: hov ? 'var(--surface-2)' : 'var(--surface)',
+        border: '1px solid var(--border)',
         borderLeft: `3px solid ${color}`,
-        padding: '16px',
+        borderRadius: 6,
+        padding: 20,
         cursor: 'pointer',
-        transition: 'background var(--t), border-color var(--t), box-shadow var(--t)',
-        boxShadow: hovered ? `0 4px 24px ${color}22` : 'none',
-        position: 'relative',
-        overflow: 'hidden',
+        transition: 'background var(--t)',
+        outline: 'none',
       }}
     >
-      {/* Rank badge */}
-      <div style={{
-        position: 'absolute', top: 10, right: 12,
-        fontFamily: 'var(--font-mono)', fontSize: 10,
-        color: rank <= 3 ? 'var(--gold)' : 'var(--c-text-dim)',
-        fontWeight: 700,
-      }}>
-        #{rank}
-      </div>
-
-      {/* Flag + group */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-        <span style={{ fontSize: 28, lineHeight: 1 }}>{flag(team.team)}</span>
-        <span style={{
-          fontFamily: 'var(--font-mono)', fontSize: 9,
-          color, textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700,
-        }}>
-          GRP {group}
+      {/* Rank + flag */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
+        <span style={{ fontSize: 32, lineHeight: 1 }}>{flag(t.team)}</span>
+        <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#444' }}>
+          #{rank} · GRP {group}
         </span>
       </div>
 
       {/* Team name */}
-      <div style={{
-        fontFamily: 'var(--font-heading)',
-        fontSize: 15,
-        fontWeight: 800,
-        color: 'var(--c-text)',
-        textTransform: 'uppercase',
-        letterSpacing: '0.04em',
-        marginBottom: 10,
-        lineHeight: 1.1,
-      }}>
-        {team.team}
+      <div style={{ fontFamily: 'var(--font-body)', fontSize: 15, fontWeight: 500, color: 'var(--text)', marginBottom: 8 }}>
+        {t.team}
       </div>
 
-      {/* Big win % */}
-      <div style={{
-        fontFamily: 'var(--font-heading)',
-        fontSize: 34,
-        fontWeight: 800,
-        color: rank <= 2 ? 'var(--gold-light)' : color,
-        lineHeight: 1,
-        letterSpacing: '-0.02em',
-        marginBottom: 10,
-      }}>
+      {/* Win % */}
+      <div style={{ fontFamily: 'var(--font-heading)', fontSize: 36, color: 'var(--gold)', lineHeight: 1, marginBottom: 8 }}>
         {winPct.toFixed(1)}%
       </div>
 
       {/* Sub stats */}
-      <div style={{ display: 'flex', gap: 12 }}>
-        {[
-          ['Final', team.final_probability],
-          ['SF', team.semifinal_probability],
-        ].map(([lbl, val]) => (
+      <div style={{ display: 'flex', gap: 16 }}>
+        {[['Final', t.final_probability], ['Semi', t.semifinal_probability]].map(([lbl, v]) => (
           <div key={lbl}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: 'var(--c-text-muted)' }}>
-              {val != null ? `${(val * 100).toFixed(0)}%` : '—'}
-            </div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--c-text-dim)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--text-muted)' }}>
+              {v != null ? `${(v * 100).toFixed(0)}%` : '—'}
+            </span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#444', marginLeft: 4 }}>
               {lbl}
-            </div>
+            </span>
           </div>
         ))}
       </div>
@@ -106,35 +68,18 @@ export default function TopContenders({ onTeamClick }) {
   const [teams, setTeams] = useState(null);
 
   useEffect(() => {
-    api.simResults()
-      .then((d) => setTeams(d.teams?.slice(0, 8) ?? []))
-      .catch(() => {});
+    api.simResults().then((d) => setTeams(d.teams?.slice(0, 8))).catch(() => {});
   }, []);
 
   return (
     <div>
-      <div className="section-label" style={{ marginBottom: 16 }}>
-        Top 8 Contenders
-      </div>
-
+      <p className="section-label">Top 8 Contenders</p>
       {!teams ? (
-        <div style={{ padding: 40, color: 'var(--c-text-dim)', fontFamily: 'var(--font-mono)', fontSize: 12 }}>
-          Loading…
-        </div>
+        <div style={{ color: '#444', fontSize: 13 }}>Loading…</div>
       ) : (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: 10,
-        }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {teams.map((t, i) => (
-            <ContenderCard
-              key={t.team}
-              team={t}
-              rank={i + 1}
-              onTeamClick={onTeamClick}
-              animDelay={i * 60}
-            />
+            <ContenderCard key={t.team} t={t} rank={i + 1} onTeamClick={onTeamClick} />
           ))}
         </div>
       )}

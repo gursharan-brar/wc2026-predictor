@@ -1,0 +1,83 @@
+World Cup 2026 Predictor - Bugfix 1: Club-form score (sparse-FBRef nations)
+==============================================================================
+
+[1/4] Capturing BEFORE win probabilities from current simulation_results.json ...
+   Brazil          11.36%
+   Argentina        3.60%
+   Colombia         2.31%
+   Mexico           1.88%
+   Japan            1.77%
+   South Korea      0.68%
+   Morocco          2.09%
+   Senegal          2.36%
+   Iran             0.49%
+   Algeria          1.17%
+   Ivory Coast      0.56%
+   Ecuador          0.56%
+   Uruguay          1.28%
+   Paraguay         0.62%
+
+[2/4] Adding club_form_score column and writing scores ...
+   Added column: nation_squad_scores.club_form_score
+
+==============================================================================
+CLUB-FORM SCORE — written to nation_squad_scores (14 nations)
+  Formula: 0.5 x weighted_win_rate + 0.5 x normalise(weighted_goals_scored_per_game)
+==============================================================================
+
+  Team             win_rate   gls/game   gls_norm  club_form_score
+  ────────────────────────────────────────────────────────────────
+  Iran               0.5985     2.0303     0.2538           0.4262
+  Brazil             0.6066     1.9445     0.2431           0.4248
+  Japan              0.5842     2.0999     0.2625           0.4234
+  Argentina          0.6062     1.7722     0.2215           0.4139
+  Morocco            0.5999     1.7114     0.2139           0.4069
+  Mexico             0.5597     1.7245     0.2156           0.3876
+  Ivory Coast        0.5581     1.7114     0.2139           0.3860
+  Algeria            0.5432     1.7558     0.2195           0.3813
+  Senegal            0.5565     1.5876     0.1985           0.3775
+  South Korea        0.4986     1.7680     0.2210           0.3598
+  Colombia           0.4515     1.3526     0.1691           0.3103
+  Uruguay            0.4191     1.3482     0.1685           0.2938
+  Ecuador            0.3526     1.2059     0.1508           0.2517
+  Paraguay           0.3174     1.0551     0.1319           0.2247
+
+[3/4] Re-running wc2026_simulator.py ...
+   Simulator finished — simulation_results.json regenerated.
+
+[4/4] Comparing AFTER win probabilities ...
+
+==============================================================================
+WIN PROBABILITY — BEFORE vs AFTER club_form_score fix (14 affected nations)
+==============================================================================
+
+  Team               Before      After          Δ
+  ────────────────────────────────────────────────
+  Brazil             11.36%     11.29%     -0.07%
+  Argentina           3.60%      3.82% +     0.22%
+  Colombia            2.31%      2.19%     -0.12%
+  Mexico              1.88%      1.63%     -0.25%
+  Japan               1.77%      1.85% +     0.08%
+  South Korea         0.68%      0.63%     -0.05%
+  Morocco             2.09%      2.01%     -0.08%
+  Senegal             2.36%      2.49% +     0.13%
+  Iran                0.49%      0.57% +     0.08%
+  Algeria             1.17%      1.13%     -0.04%
+  Ivory Coast         0.56%      0.42%     -0.14%
+  Ecuador             0.56%      0.48%     -0.08%
+  Uruguay             1.28%      1.02%     -0.26%
+  Paraguay            0.62%      0.77% +     0.15%
+
+  ────────────────────────────────────────────────
+
+  NOTE: club_form_score lives in `nation_squad_scores`, a staging/
+  display table that is NOT read by team_stats, the saved Build 4
+  model (its 27 features are read straight from team_stats and do
+  not include club_form_score or any squad-derived column — those
+  were pruned for ~0 importance), or the simulator. Writing it here
+  fixes the underlying DISPLAY/API data bug without silently
+  re-wiring the prediction model, which we were told not to touch.
+
+==============================================================================
+BUGFIX 1 COMPLETE — club_form_score written for 14 nations
+==============================================================================

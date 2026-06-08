@@ -9,70 +9,42 @@ import TeamProfile           from './components/TeamProfile';
 import BracketView           from './components/BracketView';
 import SimulationRunner      from './components/SimulationRunner';
 
-/* ─── NAV ───────────────────────────────────────────────────────────────── */
 const TABS = [
   { id: 'leaderboard', label: 'Predictions' },
   { id: 'bracket',     label: 'Groups'      },
   { id: 'simulate',    label: 'Simulate'    },
 ];
 
+const W = { maxWidth: 1200, margin: '0 auto', padding: '0 24px', width: '100%' };
+
 export default function App() {
   const [view,         setView]         = useState('leaderboard');
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [prevView,     setPrevView]     = useState('leaderboard');
 
-  function openTeam(name) {
-    setPrevView(view === 'team' ? prevView : view);
-    setSelectedTeam(name);
-    setView('team');
-  }
-
-  function goBack() {
-    setSelectedTeam(null);
-    setView(prevView);
-  }
-
-  function switchTab(id) {
-    setSelectedTeam(null);
-    setView(id);
-  }
+  const openTeam = (name) => { setPrevView(view === 'team' ? prevView : view); setSelectedTeam(name); setView('team'); };
+  const goBack   = ()     => { setSelectedTeam(null); setView(prevView); };
+  const switchTab = (id)  => { setSelectedTeam(null); setView(id); };
 
   const activeTab = view === 'team' ? prevView : view;
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
 
-      {/* ── Header ───────────────────────────────────────────────── */}
+      {/* ── Header ─────────────────────────────────────────── */}
       <header style={{
         position: 'sticky', top: 0, zIndex: 100,
-        background: 'rgba(10,10,10,0.95)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid var(--c-border)',
+        background: 'rgba(13,13,13,0.97)',
+        backdropFilter: 'blur(8px)',
+        borderBottom: '1px solid var(--border)',
       }}>
-        {/* Top gold accent line */}
-        <div style={{ height: 2, background: 'linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent)' }} />
+        <div style={{ ...W, display: 'flex', alignItems: 'center', height: 56, gap: 32 }}>
 
-        <div style={{
-          maxWidth: 1320, margin: '0 auto', padding: '0 24px',
-          display: 'flex', alignItems: 'center', height: 52, gap: 24,
-        }}>
-          {/* Wordmark */}
-          <div style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: 14, fontWeight: 800,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            display: 'flex', alignItems: 'center', gap: 8,
-            flexShrink: 0,
-          }}>
-            <span style={{ fontSize: 18 }}>⚽</span>
-            <span style={{ color: 'var(--gold)' }}>WC 2026</span>
-            <span style={{ color: 'var(--c-text-dim)', fontWeight: 400 }}>/</span>
-            <span style={{ color: 'var(--c-text-muted)' }}>PREDICTOR</span>
-          </div>
+          {/* Logo */}
+          <img src="/wc2026.svg" height="32" alt="WC 2026" style={{ flexShrink: 0 }} />
 
           {/* Nav */}
-          <nav role="navigation" aria-label="Main navigation" style={{ display: 'flex', gap: 2 }}>
+          <nav style={{ display: 'flex', gap: 0 }} role="navigation" aria-label="Main navigation">
             {TABS.map((t) => {
               const active = activeTab === t.id;
               return (
@@ -81,22 +53,22 @@ export default function App() {
                   onClick={() => switchTab(t.id)}
                   aria-current={active ? 'page' : undefined}
                   style={{
-                    padding: '6px 16px',
+                    padding: '0 20px',
+                    height: 56,
                     border: 'none',
                     borderBottom: active ? '2px solid var(--gold)' : '2px solid transparent',
-                    borderRadius: 0,
-                    background: active ? 'var(--gold-dim)' : 'transparent',
-                    color: active ? 'var(--gold)' : 'var(--c-text-muted)',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 11, fontWeight: active ? 700 : 400,
-                    letterSpacing: '0.07em',
+                    background: 'transparent',
+                    color: active ? 'var(--text)' : 'var(--text-muted)',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    letterSpacing: '0.04em',
                     textTransform: 'uppercase',
                     cursor: 'pointer',
-                    transition: 'all var(--t)',
-                    minHeight: 36,
+                    transition: 'color var(--t), border-color var(--t)',
                   }}
-                  onMouseEnter={(e) => { if (!active) e.target.style.color = 'var(--c-text)'; }}
-                  onMouseLeave={(e) => { if (!active) e.target.style.color = 'var(--c-text-muted)'; }}
+                  onMouseEnter={(e) => { if (!active) e.target.style.color = 'var(--text)'; }}
+                  onMouseLeave={(e) => { if (!active) e.target.style.color = 'var(--text-muted)'; }}
                 >
                   {t.label}
                 </button>
@@ -104,82 +76,49 @@ export default function App() {
             })}
           </nav>
 
-          {/* Byline */}
-          <div style={{
-            marginLeft: 'auto',
-            fontFamily: 'var(--font-mono)', fontSize: 10,
-            color: 'var(--c-text-dim)', letterSpacing: '0.06em',
-            whiteSpace: 'nowrap',
-          }}>
-            by Gursharan Singh Brar
-          </div>
+          <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-body)', fontSize: 11, color: '#444' }}>
+            Gursharan Singh Brar
+          </span>
         </div>
       </header>
 
-      {/* ── Stats strip ────────────────────────────────────────────── */}
+      {/* ── Stats bar ───────────────────────────────────────── */}
       <StatsBar />
 
-      {/* ── Main ───────────────────────────────────────────────────── */}
-      <main style={{
-        flex: 1,
-        maxWidth: 1320, margin: '0 auto',
-        padding: '28px 24px',
-        width: '100%',
-      }}>
+      {/* ── Main ────────────────────────────────────────────── */}
+      <main style={{ flex: 1, ...W, padding: '40px 24px' }}>
 
-        {/* PREDICTIONS TAB */}
         {view === 'leaderboard' && (
-          <div>
-            {/* Hero champion vs finalist */}
+          <div className="fade-up">
             <HeroSection onTeamClick={openTeam} />
-
-            <hr className="gold-divider" />
-
-            {/* Three-panel mid section */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 300px',
-              gap: 24,
-              marginBottom: 8,
-              alignItems: 'start',
-            }}>
+            <hr className="divider" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 280px', gap: 24, marginBottom: 40 }}>
               <TopContenders onTeamClick={openTeam} />
               <BracketPath   onTeamClick={openTeam} />
               <ModelAccuracy />
             </div>
-
-            <hr className="gold-divider" />
-
-            {/* Full leaderboard */}
+            <hr className="divider" />
             <PredictionLeaderboard onTeamClick={openTeam} />
           </div>
         )}
 
-        {/* GROUPS TAB */}
-        {view === 'bracket' && <BracketView onTeamClick={openTeam} />}
-
-        {/* SIMULATE TAB */}
+        {view === 'bracket'  && <BracketView    onTeamClick={openTeam} />}
         {view === 'simulate' && <SimulationRunner />}
-
-        {/* TEAM PROFILE */}
-        {view === 'team' && (
-          <TeamProfile key={selectedTeam} team={selectedTeam} onBack={goBack} />
-        )}
+        {view === 'team'     && <TeamProfile key={selectedTeam} team={selectedTeam} onBack={goBack} />}
       </main>
 
-      {/* ── Footer ─────────────────────────────────────────────────── */}
+      {/* ── Footer ──────────────────────────────────────────── */}
       <footer style={{
-        borderTop: '1px solid var(--c-border)',
-        padding: '12px 24px',
-        maxWidth: 1320, margin: '0 auto', width: '100%',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        flexWrap: 'wrap', gap: 8,
+        borderTop: '1px solid var(--border)',
+        padding: '16px 24px',
+        ...W,
+        display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8,
       }}>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--c-text-dim)' }}>
-          WC 2026 PREDICTOR · XGBOOST · MONTE CARLO · 10,000 SIMULATIONS
+        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#444' }}>
+          WC 2026 Predictor · XGBoost · Monte Carlo · 10,000 simulations
         </span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--gold)', letterSpacing: '0.06em' }}>
-          GURSHARAN SINGH BRAR · {new Date().getFullYear()}
+        <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: '#444' }}>
+          Gursharan Singh Brar · {new Date().getFullYear()}
         </span>
       </footer>
     </div>

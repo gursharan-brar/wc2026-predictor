@@ -1,0 +1,9 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" fill="none">
+  <path d="M18 6 h14 v10 a7 7 0 0 1-14 0 Z" stroke="#c9a84c" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M14 8 h4 v5 a2 2 0 0 1-4 0 Z" fill="#c9a84c" opacity="0.55"/>
+  <path d="M32 8 h4 v5 a2 2 0 0 1-4 0 Z" fill="#c9a84c" opacity="0.55"/>
+  <rect x="22" y="16" width="6" height="7" fill="#c9a84c" opacity="0.65"/>
+  <rect x="18" y="23" width="14" height="2.5" rx="1" fill="#c9a84c"/>
+  <text x="52" y="18" font-family="'Bebas Neue',sans-serif" font-size="16" fill="#c9a84c" letter-spacing="1.5">WC 2026</text>
+  <text x="52" y="31" font-family="'Inter',sans-serif" font-size="8.5" fill="#666" letter-spacing="2.5">PREDICTOR</text>
+</svg>

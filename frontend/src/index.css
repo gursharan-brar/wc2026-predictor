@@ -1,55 +1,37 @@
-/* ═══════════════════════════════════════════════════════════
-   WC 2026 PREDICTOR — Gold Trophy Cabinet Design System
-   Aesthetic: Luxury Trophy Case
-   ═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   WC 2026 Predictor — Design System v2
+   Clean, editorial, premium. Bebas Neue + Inter.
+   ═══════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Core surfaces ─────────────────────────────────────── */
-  --c-bg:        #0a0a0a;
-  --c-surface:   #111111;
-  --c-raised:    #181818;
-  --c-hover:     #1e1e1e;
-  --c-border:    rgba(255, 255, 255, 0.06);
-  --c-border-md: rgba(255, 255, 255, 0.11);
+  --bg:         #0d0d0d;
+  --surface:    #161616;
+  --surface-2:  #1e1e1e;
+  --gold:       #c9a84c;
+  --gold-dim:   rgba(201, 168, 76, 0.15);
+  --text:       #f0f0f0;
+  --text-muted: #888888;
+  --border:     rgba(255, 255, 255, 0.08);
+  --red:        #c0392b;
+  --green:      #1a6b3c;
 
-  /* ── Gold palette ──────────────────────────────────────── */
-  --gold:          #d4af37;
-  --gold-light:    #f5c842;
-  --gold-pale:     #e8d48b;
-  --gold-dim:      rgba(212, 175, 55, 0.12);
-  --gold-border:   rgba(212, 175, 55, 0.30);
-  --gold-glow:     rgba(212, 175, 55, 0.22);
-  --gold-divider:  rgba(212, 175, 55, 0.18);
+  --font-heading: 'Bebas Neue', sans-serif;
+  --font-body:    'Inter', sans-serif;
 
-  /* ── Text ──────────────────────────────────────────────── */
-  --c-text:        #f0ede8;
-  --c-text-muted:  #8a8680;
-  --c-text-dim:    #44433f;
-
-  /* ── Status colors ─────────────────────────────────────── */
-  --c-red:    #e63946;
-  --c-green:  #2dc653;
-  --c-yellow: #f5c842;
-
-  /* ── Typography ────────────────────────────────────────── */
-  --font-heading: 'Syne', sans-serif;
-  --font-mono:    'JetBrains Mono', monospace;
-
-  /* ── Geometry ──────────────────────────────────────────── */
-  --r-card: 8px;
-  --r-sm:   4px;
-  --t:      180ms ease;
+  --radius:   6px;
+  --t:        160ms ease;
+  --max-w:    1200px;
 }
 
-/* ── Reset ─────────────────────────────────────────────────── */
+/* ── Reset ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 
 body {
-  background: var(--c-bg);
-  color: var(--c-text);
-  font-family: var(--font-mono);
-  font-size: 13px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
@@ -57,34 +39,13 @@ body {
 
 #root { min-height: 100vh; display: flex; flex-direction: column; }
 
-/* ── Scrollbar ─────────────────────────────────────────────── */
+/* ── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar              { width: 5px; height: 5px; }
-::-webkit-scrollbar-track        { background: var(--c-bg); }
-::-webkit-scrollbar-thumb        { background: var(--c-raised); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover  { background: var(--c-text-dim); }
+::-webkit-scrollbar-track        { background: var(--bg); }
+::-webkit-scrollbar-thumb        { background: var(--surface-2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover  { background: #333; }
 
-/* ── Keyframes ─────────────────────────────────────────────── */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes shimmer {
-  0%   { opacity: 0.6; }
-  50%  { opacity: 1; }
-  100% { opacity: 0.6; }
-}
-@keyframes pulse-live {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.4); }
-  50%       { box-shadow: 0 0 0 6px rgba(212,175,55,0); }
-}
-@keyframes bar-grow {
-  from { width: 0; }
-  to   { width: var(--bw); }
-}
-
-.fade-up { animation: fadeUp 0.4s cubic-bezier(.22,1,.36,1) both; }
-
-/* ── Reduced motion ────────────────────────────────────────── */
+/* ── Reduced motion ─────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -92,173 +53,112 @@ body {
   }
 }
 
-/* ── Gold divider ──────────────────────────────────────────── */
-.gold-divider {
-  border: none;
-  border-top: 1px solid var(--gold-divider);
-  margin: 28px 0;
+/* ── Animations ─────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+.fade-up { animation: fadeUp 0.35s ease both; }
+
+/* ── Layout ─────────────────────────────────────────────── */
+.page-wrap {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 24px;
+  width: 100%;
 }
 
-/* ── Section heading ───────────────────────────────────────── */
+.section-gap { margin-top: 48px; }
+
+/* ── Divider ────────────────────────────────────────────── */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 40px 0;
+}
+
+/* ── Section label ──────────────────────────────────────── */
 .section-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--gold);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.section-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--gold-divider);
+  margin-bottom: 20px;
 }
 
-/* ── Cards ─────────────────────────────────────────────────── */
+/* ── Cards ──────────────────────────────────────────────── */
 .card {
-  background: var(--c-surface);
-  border: 1px solid var(--c-border);
-  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
 }
-.card-raised {
-  background: var(--c-raised);
-  border: 1px solid var(--c-border-md);
-  border-radius: var(--r-card);
+.card-2 {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
 }
 
-/* ── Buttons ───────────────────────────────────────────────── */
+/* ── Buttons ────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  padding: 9px 18px;
-  border: 1px solid var(--c-border-md);
-  border-radius: var(--r-sm);
-  background: var(--c-raised);
-  color: var(--c-text);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
+  gap: 8px;
+  padding: 9px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: border-color var(--t), color var(--t), background var(--t), box-shadow var(--t);
+  transition: border-color var(--t), color var(--t), background var(--t);
   outline: none;
-  white-space: nowrap;
   min-height: 36px;
 }
-.btn:hover {
-  border-color: var(--gold-border);
-  color: var(--gold);
-  background: var(--gold-dim);
-}
-.btn:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 2px;
-}
+.btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+.btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
 .btn-gold {
-  border-color: var(--gold-border);
+  border-color: var(--gold);
   color: var(--gold);
-  background: var(--gold-dim);
+  background: transparent;
 }
-.btn-gold:hover {
-  background: rgba(212,175,55,0.2);
-  box-shadow: 0 0 16px var(--gold-glow);
-}
-.btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-  pointer-events: none;
-}
+.btn-gold:hover { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
 
-/* ── Chips / tags ──────────────────────────────────────────── */
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border: 1px solid var(--c-border-md);
-  border-radius: 3px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  color: var(--c-text-muted);
-  background: var(--c-raised);
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.chip-gold {
-  border-color: var(--gold-border);
-  color: var(--gold);
-  background: var(--gold-dim);
-}
-
-/* ── Status dot ────────────────────────────────────────────── */
-.live-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--gold);
-  display: inline-block;
-  flex-shrink: 0;
-  animation: pulse-live 2s ease infinite;
-}
-.dot-dim {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--c-text-dim);
-  display: inline-block;
-}
-.dot-red {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--c-red);
-  display: inline-block;
-}
-
-/* ── Probability bar ───────────────────────────────────────── */
-.prob-track {
-  height: 5px;
-  background: var(--c-raised);
-  border-radius: 2px;
-  overflow: hidden;
-  flex: 1;
-}
-.prob-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 100%);
-  border-radius: 2px;
-  width: var(--bw);
-  animation: bar-grow 0.75s cubic-bezier(.22,1,.36,1) both;
-}
-
-/* ── Input ─────────────────────────────────────────────────── */
-.input-gold {
-  background: var(--c-raised);
-  border: 1px solid var(--c-border-md);
-  border-radius: var(--r-sm);
+/* ── Input ──────────────────────────────────────────────── */
+.input {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 7px 12px;
-  color: var(--c-text);
-  font-family: var(--font-mono);
-  font-size: 12px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
   outline: none;
   transition: border-color var(--t);
 }
-.input-gold:focus {
-  border-color: var(--gold-border);
-}
-.input-gold::placeholder {
-  color: var(--c-text-dim);
-}
+.input:focus { border-color: var(--gold); }
+.input::placeholder { color: #444; }
 
-/* ── Layout containers ─────────────────────────────────────── */
-.page-wrap {
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 0 24px;
-  width: 100%;
+/* ── Live dot ───────────────────────────────────────────── */
+.live-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #3ecf8e;
+  display: inline-block;
+  flex-shrink: 0;
+  animation: pulse-dot 2s ease infinite;
 }
