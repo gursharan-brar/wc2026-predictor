@@ -20,7 +20,7 @@ export default function ModelAccuracy() {
 
       {/* Big accuracy number */}
       <div style={{ fontFamily: 'var(--font-heading)', fontSize: 48, color: 'var(--gold)', lineHeight: 1, marginBottom: 4 }}>
-        <BigNum target={57.7} delay={0} />%
+        <BigNum target={64.4} delay={0} />%
       </div>
       <p style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#444', marginBottom: 20 }}>
         5-fold cross-validation
@@ -43,7 +43,7 @@ export default function ModelAccuracy() {
       ))}
 
       <div style={{ marginTop: 16, fontFamily: 'var(--font-body)', fontSize: 12, color: '#444', lineHeight: 1.6 }}>
-        XGBoost trained on 72 features per match — club form, tournament history,
+        XGBoost trained on 87 features per match — club form, tournament history,
         StatsBomb event data, and squad market value.
       </div>
     </div>
