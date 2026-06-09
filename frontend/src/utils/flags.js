@@ -36,11 +36,7 @@ export const FLAGS = {
   // Group L
   'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'Croatia': '🇭🇷', 'Ghana': '🇬🇭', 'Panama': '🇵🇦',
 
-  // ── Alternate spellings some data sources (teams.csv, FIFA feeds) use ──
-  // Keeping both forms means the lookup never falls through to ⚽ just
-  // because of an accent / spelling difference.
-  'Curaçao':    '🇨🇼',
-  'Cabo Verde': '🇨🇻',
+  // ── Non-WC team (included for completeness in data feeds) ──
   'DR Congo':   '🇨🇩',
 };
 
@@ -65,9 +61,6 @@ const GROUPS = {
 Object.entries(GROUPS).forEach(([g, teams]) =>
   teams.forEach((t) => { TEAM_GROUP[t] = g; })
 );
-// Alternate-spelling aliases inherit their canonical team's group.
-TEAM_GROUP['Curaçao']    = TEAM_GROUP['Curacao'];
-TEAM_GROUP['Cabo Verde'] = TEAM_GROUP['Cape Verde'];
 
 /**
  * Human-readable names for the 6 still-undecided playoff slots.
