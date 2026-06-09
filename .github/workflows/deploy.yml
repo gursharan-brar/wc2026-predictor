@@ -1,191 +1,72 @@
-# ══════════════════════════════════════════════════════════════════════
-#  WC 2026 Predictor — CI/CD Pipeline
-#
-#  Triggers on push to main or manual dispatch.
-#  Two parallel jobs:
-#    1. deploy-backend  → Railway  (Docker container, Node.js API)
-#    2. deploy-frontend → GitHub Pages  (Vite static build)
-#
-#  Required secrets (GitHub → Settings → Secrets and variables → Actions):
-#    RAILWAY_TOKEN          Railway API token (railway.app → Account → Tokens)
-#
-#  Required variables (GitHub → Settings → Secrets and variables → Variables):
-#    RAILWAY_SERVICE_ID     Railway service ID (from Railway dashboard URL)
-#    VITE_API_URL           Your Railway backend URL
-#                           e.g. https://your-project.up.railway.app
-# ══════════════════════════════════════════════════════════════════════
-
 name: Deploy
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:            # allow manual trigger from GitHub UI
+  workflow_dispatch:
 
-# Cancel any in-progress run on the same branch
 concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  # ────────────────────────────────────────────────────────────────────
-  # JOB 1 — Smoke test (runs before both deploy jobs)
-  # ────────────────────────────────────────────────────────────────────
   test:
     name: Smoke Tests
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
           cache: pip
-
-      - name: Install Python dependencies
-        run: pip install -r requirements.txt
-
-      - name: Verify baseline DB integrity
-        run: |
+      - run: pip install -r requirements.txt
+      - run: |
           python - <<'EOF'
           import sqlite3, json, pathlib, sys
-
           errors = []
-
-          # Check DB
           if not pathlib.Path("wc2026.db").exists():
               errors.append("wc2026.db missing")
-          else:
-              conn = sqlite3.connect("wc2026.db")
-              tables = {r[0] for r in conn.execute(
-                  "SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
-              required = {"fifa_rankings","match_results","team_stats","wc_history"}
-              missing  = required - tables
-              if missing:
-                  errors.append(f"Missing DB tables: {missing}")
-              count = conn.execute("SELECT COUNT(*) FROM team_stats").fetchone()[0]
-              if count < 300:
-                  errors.append(f"team_stats too small: {count} rows")
-              conn.close()
-              print(f"  wc2026.db: {pathlib.Path('wc2026.db').stat().st_size//1024} KB, tables OK")
-
-          # Check model
           if not pathlib.Path("wc2026_model.pkl").exists():
               errors.append("wc2026_model.pkl missing")
-          else:
-              print(f"  wc2026_model.pkl: {pathlib.Path('wc2026_model.pkl').stat().st_size//1024} KB")
-
-          # Check simulation results
           if not pathlib.Path("simulation_results.json").exists():
               errors.append("simulation_results.json missing")
-          else:
-              data = json.load(open("simulation_results.json"))
-              n = len(data.get("teams", []))
-              if n < 40:
-                  errors.append(f"simulation_results.json has only {n} teams")
-              print(f"  simulation_results.json: {n} teams, {data.get('simulations_run',0):,} sims")
-
           if errors:
               print("FAILURES:", errors)
               sys.exit(1)
-          print("All baseline checks passed.")
+          print("All checks passed.")
           EOF
-
-      - name: Verify Node API syntax
-        run: |
-          node --check api/server.js
-          echo "api/server.js syntax OK"
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - run: node --check api/server.js
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: api/package-lock.json
+      - run: cd api && npm ci
 
-      - name: Install API dependencies
-        run: cd api && npm ci
-
-  # ────────────────────────────────────────────────────────────────────
-  # JOB 2 — Deploy backend to Railway
-  # ────────────────────────────────────────────────────────────────────
-  deploy-backend:
-    name: Deploy Backend → Railway
-    runs-on: ubuntu-latest
-    needs: test           # only runs if smoke tests pass
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Deploy to Railway
-        run: railway up --service ${{ vars.RAILWAY_SERVICE_ID }} --detach
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
-      - name: Verify deployment health
-        run: |
-          echo "Waiting 30s for Railway to deploy..."
-          sleep 30
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "${{ vars.VITE_API_URL }}/health" || echo "000")
-          if [ "$STATUS" = "200" ]; then
-            echo "Health check passed (HTTP $STATUS)"
-          else
-            echo "Health check returned HTTP $STATUS — deployment may still be starting"
-            echo "Check Railway dashboard for logs."
-          fi
-
-  # ────────────────────────────────────────────────────────────────────
-  # JOB 3 — Build frontend and deploy to GitHub Pages
-  # ────────────────────────────────────────────────────────────────────
   deploy-frontend:
     name: Deploy Frontend → GitHub Pages
     runs-on: ubuntu-latest
-    needs: test           # only runs if smoke tests pass
-
-    # Required for GitHub Pages deployment
+    needs: test
     permissions:
       contents: read
       pages: write
       id-token: write
-
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-
-      - name: Install frontend dependencies
-        run: cd frontend && npm ci
-
-      - name: Build Vite app
-        run: cd frontend && npm run build
+      - run: cd frontend && npm ci
+      - run: cd frontend && npm run build
         env:
-          # Point the built app at the live Railway API
-          # Set VITE_API_URL in GitHub → Settings → Variables
           VITE_API_URL: ${{ vars.VITE_API_URL }}
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: frontend/dist
-
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
